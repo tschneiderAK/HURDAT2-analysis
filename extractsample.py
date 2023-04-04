@@ -3,8 +3,8 @@ import re
 source = r"./hurdat_sample.txt"
 name = "myTestSource"
 
-with open(source) as s:
-    sr = s.read()
-    sr = '\n'.split(sr)
+with open(source, 'r') as s:
+    sr = s.readlines()
+
     print(sr)
 

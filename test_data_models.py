@@ -2,14 +2,23 @@ import unittest
 
 import data_models as dm
 
-class TestDataModels(unittest.TestCase):
+class TestTextSource(unittest.TestCase):
 
-    def test_text_source__init(self):
+    @classmethod
+    def setUpCLass(cls):
         source = r"./hurdat_sample.txt"
         name = "myTestSource"
-        ts = dm.TextSource(source_path = source, source_name=name)
-        self.assertEqual(ts.source_path, source)
-        self.assertEqual(ts.source_name, name)
+        cls.ts = dm.TextSource(source_path = source, source_name=name)
+
+    def test_init(self):
+        self.assertEqual(self.ts.source_path, self.source)
+        self.assertEqual(self.ts.source_name, self.name)
+
+    def test_extract(self):
+        self.ts.extract_data()
+        self.assertEqual()
+        
 
 if __name__ == '__main__':
-    unittest.main()
+    TestTextSource.setUpCLass()
+

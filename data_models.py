@@ -5,9 +5,6 @@ from pathlib import Path
 from re import match
 from typing import List, Optional
 
-# Create a time zone object representing a 0-hour offset from UTC, aka Zulu time.
-zulu = timezone(timedelta(), name = 'Zulu Time (UTC)')
-
 
 @dataclass
 class TrackEntry:
@@ -46,6 +43,7 @@ class TrackEntry:
             WV Tropical Wave (of any intensity)
             DB Disturbance (of any intensity)
     max_windspeed: int
+        Maximum sustained windspeed for this entry, in knots.
 
 
     Methods:
@@ -57,6 +55,7 @@ class TrackEntry:
     datetime:           datetime
     record_identifier:  Optional[str]
     system_status:      str
+    max_windspeed:      int
 
 
 @dataclass
@@ -123,59 +122,94 @@ class TextSource(DataSource):
 
 
     def __post_init__(self):
+        """
+        
+        Sets the source_name to source_path if not provided.
+
+        """
         if not self.source_name:
             self.source_name = self.source_path
 
-    def extract_data(self) -> bool:
-        data = DataSet
+    def extract_data(self) -> DataSet:
+        """
+
+        Extracts data and returns a DataSet object.
+
+        """
+
         with open(self.source_path, 'r') as source_data:
-            for line in source_data:
-                # check if the line is a header line, as defined by header_regex:
-                if match(self.header_regex, line):
-                    header = ''.split(line)
+            lines = source_data.readlines()
+            tracks = self._parse_tracks(lines)
+        
+        return DataSet(tracks=tracks, source_type='text', name= 'self.source_name')
+
+
+    def _parse_tracks(self, lines) -> List[Track]:
+            line_ct = len(lines)
+            i = 0
+            tracks = []
+            while i < line_ct:
+                if self._is_header(lines[i]):
+                    header = lines[i].split(',')
+                    header = [part.strip() for part in header]
                     basin =  header[0][:2]
-                    cyclone_no = header[0][2:4]
-                    year = header[0][4:8]
-                    track = Track(basin, cyclone_no, year)
-                    self.data.tracks.append(track)
-                # If not a header line, parse non-empty line as a data line.
-                elif line:
-                    # Break the data line on commas.
-                    data_line = ','.split(line)
-                    # Remove leading and trailing whitespace
-                    for i, entry in enumerate(data_line):
-                        data_line[i] = entry.strip()
-                    # Parse to get track entry data.
-                    entry_year = data_line[0][:4]
-                    entry_month = data_line[0][4:6]
-                    entry_day = data_line[0][6:8]
-                    entry_hour = data_line[1][:2]
-                    entry_minute = data_line[1][2:4]
+                    cyclone_no = int(header[0][2:4])
+                    year = int(header[0][4:8])
+                    name = header[1]
+                    no_track_entries = int(header[2])
+                    track_entries = []
+                    
+                    i += 1
+                    while i < line_ct and not self._is_header(lines[i]):
+                        print(i)
+                        if not lines[i]:
+                             i += 1
+                             continue
+                        track_entries.append(self._parse_data_line(lines[i]))
+                        i += 1
+
+                    track = Track(basin=basin,
+                                  year=year,
+                                  cyclone_no=cyclone_no,
+                                  no_track_entries=no_track_entries,
+                                  track_entries=track_entries)
+                    tracks.append(track)
+            return tracks
+
+
+    def _is_header(self, line):
+            if match(self.header_regex, line):
+                return True
+                  
+
+    def _parse_data_line(self, line):
+        # Break the data line on commas.
+                    # Split line on commas and remove leading and trailing whitespace
+                    data_line = line.split(',')
+                    data_line = [part.strip() for part in data_line]
+
+                    # Parse to get track entry data as a datetime object
+                    entry_date_time = data_line[0] + 'T' + data_line[1] + 'Z'
+                    track_datetime = datetime.fromisoformat(entry_date_time)
+
+                    # Parse meteorological data
                     record_identifier = data_line[2]
                     system_status = data_line[3]
-                    latitude = float(data_line[4][:-1]) * (-1 * data_line[4][-1] == 'S')
-                    longitude = float(data_line)[5][:-1] * (-1 * data_line[5][-1] == 'W')
                     max_windspeed = data_line[6]
-                    
-                    # Create a datetime object for the entry
-                    track_datetime = datetime(entry_year, 
-                                              entry_month, 
-                                              entry_day, 
-                                              entry_hour, 
-                                              entry_minute,
-                                              tzinfo=zulu)
-                    
-                    # Create a TrackEntry object for this line of data and append to the Track object
+
+                    # Parse lat/lon and convert S/W coords to negative values.
+                    latitude = float(data_line[4][:-1]) * (-1 ** (data_line[4][-1] == 'S'))
+                    longitude = float(data_line[5][:-1]) * (-1 ** (data_line[5][-1] == 'W'))
+                  
+                    # Create a TrackEntry object for this line of data and return
                     track_entry = TrackEntry(latitude= latitude, 
                                              longitude=longitude, 
                                              datetime=track_datetime,
                                              record_identifier=record_identifier,
-                                             system_status=system_status)
+                                             system_status=system_status,
+                                             max_windspeed= max_windspeed)
                     
-                    track.track_entries.append(track_entry)
-        
-        return data
-                    
+                    return track_entry           
 
 
 
