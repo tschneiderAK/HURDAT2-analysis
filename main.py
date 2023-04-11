@@ -1,10 +1,16 @@
-import data_models
+import logging
+
+import repositories
+import domain_models
+
 
 def main():
-    txt_source = "./hurdat_sample.txt"
-    m = data_models.TextSource(source_path=txt_source)
-    ds =m.extract_data()
-    for track in ds.tracks:
+    logging.basicConfig(filename='app.log', filemode='w', level=logging.INFO)
+
+    txt_source = "./Tests/Test_Data/hurdat_sample.txt"
+    m = repositories.TextRepository(source_path=txt_source)
+    ds = m.extract_data()
+    for track in ds:
         print(track.year + track.cyclone_no)
         for track_entry in track.track_entries:
             print(track_entry)
