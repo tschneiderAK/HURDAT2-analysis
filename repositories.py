@@ -9,7 +9,7 @@ from constants import *
 from domain_models import *
 
 
-class DataRepository(ABC):
+class IDataRepository(ABC):
     """
     Abstract class to serve as an interface for data sources.
 
@@ -26,7 +26,7 @@ class DataRepository(ABC):
 
 
 @dataclass    
-class TextRepository(DataRepository):
+class TextRepository(IDataRepository):
     """
     
     DataRepository subclass which ingests data from a .txt file.
