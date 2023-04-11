@@ -129,6 +129,7 @@ class TextRepository(DataRepository):
             cyclone_no=cyclone_no,
             name=name,
             no_track_entries=no_track_entries)
+        logging.info('Storm parsed from data: Name: %s Year: %i Cyclone Number: %i' % (name, year, cyclone_no))
         return track
 
     def _parse_track_entry(self, line) -> TrackEntry:
