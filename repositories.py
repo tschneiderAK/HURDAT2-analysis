@@ -1,35 +1,32 @@
+import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from re import findall, match
+from pathlib import Path
 from typing import List, Optional
 
+from shapely.geometry import MultiPolygon, Point, shape
+
 from constants import *
-from domain_models import *
+from entities import *
+from services import IArea, IReport, IStorm
 
 
-class IDataRepository(ABC):
-    """
-    Abstract class to serve as an interface for data sources.
+class AreaJSONRepository(IArea):
 
-    Methods:
-    --------
-    extract_data()
-        Extracts the data from the given source and returns a DataSet object.
-
-    """
-
-    @abstractmethod
-    def extract_data():
-        pass
+    def extract_geometry(self, file_source):
+        with open(file_source, 'r') as f:
+            data = json.load(f)
+        area = shape(data['geometry'])
+        return area
 
 
-@dataclass    
-class TextRepository(IDataRepository):
+@dataclass
+class StormTextRepository(IStorm):
     """
     
-    DataRepository subclass which ingests data from a .txt file.
+    Implementation of the IStorm interface using a .txt file data source.
     
     Attributes:
     -----------
@@ -44,7 +41,7 @@ class TextRepository(IDataRepository):
     Methods:
     --------
     extract_data()
-        Extracts the data from the given text file and returns a DataSet object.
+        Extracts the data from the given text file and returns a list of Track objects..
     
     """
 
@@ -73,6 +70,7 @@ class TextRepository(IDataRepository):
         with open(self.source_path, 'r') as source_data:
             lines = source_data.readlines()
             tracks = self._parse_tracks(lines)
+        
         
         return tracks
 
@@ -160,3 +158,25 @@ class TextRepository(IDataRepository):
         
         return track_entry
     
+    
+class JSONReportRepository(IReport):
+    """
+    
+    Implementation of the IReport interface, using json as the file format.
+    
+    """
+    
+    def save(self, target: str, data) -> bool:
+        directory = Path(target)
+        # Check if the target is a valid directory.
+        if not directory.exists() or not directory.is_dir():
+            return 400
+        
+        # Specify the report file path.
+        # TODO: Add logic to avoid overwriting existing files.
+        report_path = Path(target + "/HURDAT2_REPORT.json")
+        
+        with report_path.open(mode='w') as file:
+            json.dump(data, file)
+
+        return 200

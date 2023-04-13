@@ -1,26 +1,11 @@
-1. The system will ingest a dataset of hurricane tracking data.
-    1.1 The dataset is expected to be in a .txt file with comma delimited values.
-    1.2 The dataset is expected to have a header row for each storm, which contains:
-         the basin identifier ('AL' for atlantic), 
-         the cyclone number for the year, 
-         the year, and 
-         the name of the storm.
-    1.3 Below each header row, the dataset is expected to contain one or more data lines associated with the storm in the header line.
-        1.3.1 The data line will contain:
-            The year, month, day, and hours/minutes in UTC of the record,
-            the record identifier (optional, single char string),
-            the status of system (two char string),
-            the latitude and longitude of the record,
-            the maximum sustained wind speed,
-            and other data not used in this application.
-
-2. The system will identify hurricanes made landfall in Florida.
-    2.1 The system may use the record identifier code for Landfall ('L'), but would ideally detect landfall without this identifier.
-    2.2 The system will identify which storms have hurricane status at landfall.
-        2.2.1 The system may use the 'HU' storm status identifier for determination of hurricane status.
-        2.2.2 The system MUST identify storms which are a hurricane at landfall.
-        2.2.3 The system may optionally identify storms which meet other criteria (such as hurricane status before/after Florida landfall).
-3. The system will generate a report of all storms which make landfall in Florida.
-    3.1 The report will contain the name, date of landfall, and max windspeed for each event.
-        3.1.1 The system MUST be able to report the max windspeed for the storm at any point in its lifespan.
-        3.1.2 The system may optionally be able to report the max windspeed within 100 miles of landfall.
+contourpy==1.0.7
+cycler==0.11.0
+fonttools==4.39.3
+kiwisolver==1.4.4
+matplotlib==3.7.1
+numpy==1.24.2
+packaging==23.0
+Pillow==9.5.0
+pyparsing==3.0.9
+python-dateutil==2.8.2
+six==1.16.0

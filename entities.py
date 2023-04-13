@@ -1,7 +1,9 @@
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-import logging
 from typing import List, Optional, Tuple
+
+from shapely import Point
 
 from constants import *
 
@@ -51,6 +53,12 @@ class LatLongPoint:
             return False
         self._longitude = longitude
         return True
+    
+    # Methods
+
+    # Convert to shapely point, which uses x,y (long, lat)
+    def to_point(self):
+        return Point(self.longitude, self.latitude)
 
 
 @dataclass
@@ -83,6 +91,25 @@ class TrackEntry:
 
 @dataclass
 class Track:
+    """
+    
+    Represents a storm's track.
+
+    Attributes:
+    -----------
+    basin: str
+        The oceanic basin in which the storm originated. AL = Atlantic
+    year: int
+        Hurricane season year.
+    cyclone_no: int
+        Sequential number of the storm that year.
+    no_track_entries:
+        Number of expected data points in this track.
+    max_windspeed:
+        Max wind speed for any point in the track.
+    name: str
+        Name of the storm, if named. 'UNNAMED' if not.
+    """
 
     basin:              str
     year:               int
@@ -91,6 +118,12 @@ class Track:
     track_entries:      List[TrackEntry] = field(default_factory=list)
     max_windspeed:      int = 0
     name:               str = 'UNNAMED'
+
+    def __post_init__(self):
+        self.id = self.basin + str(self.year) + str(self.cyclone_no)
+
+    def set_max_windspeed(self, entry: TrackEntry):
+        self.max_windspeed = max(self.max_windspeed, entry.max_windspeed)
 
     def validate_entries(self) -> bool:
         """
@@ -103,33 +136,8 @@ class Track:
             return True
 
 
-class GeoArea:
-    """
-    
-    Represents a geographical area defined by a polygon of LatLongPoints.
-
-    Attributes:
-    -----------
-    boundary: List[LatLongPoint]
-        Defines the boundary of the area.
-
-    Methods:
-    --------
-    contains(LatLongPoint):
-        Returns whether a LatLongPoint is within or on the boundary polygon.
-    
-    """
-    def __init__(self, name, boundary_points: List[Tuple[float, float]]):
-        # Check if 3 or more distinct points are provided, raise exception if not.
-        if len(set(boundary_points)) < 3:
-            raise ValueError('Fewer than 3 points passed to initialize GeoArea. At least 3 distinct points are required to create a GeoArea.')
-        self.boundary = boundary_points
-
-    def contains(self, point: LatLongPoint) -> bool:
-        pass
-
 @dataclass
-class StormReport:
+class Report:
     """
     
     Represents a report on a storm/track.

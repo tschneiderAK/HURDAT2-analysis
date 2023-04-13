@@ -1,32 +1,80 @@
-from domain_models import *
+from abc import ABC, abstractmethod
 
-class AreaService:
+from matplotlib.path import Path as mpltPath
+from shapely import Geometry
+
+import constants
+from entities import *
+
+class IArea(ABC):
     """
-    Provides an application service related to a defined area.
+    Abstract class to serve as an interface for area sources.
 
     Methods:
     --------
-    contains(LatLongPoint):
-        Returns whether a LatLongPoint is within or on the boundary polygon.
+    extract_geometry()
+        Extracts a list of points which form the boundary of an area.
     """
 
-    def area_contains_point(self, area: GeoArea, point: LatLongPoint) -> bool:
+    @abstractmethod
+    def extract_geometry():
         pass
 
-    def area_contains_any(self, area: GeoArea, points: List[LatLongPoint]) -> bool:
-        for point in points:
-            if self.area_contains_point(area, point):
-                return True
-        return False
-
-class StormReportService:
+class IReport(ABC):
     """
-    Service for analyzing a storm or set of storms.
+    Abstract base class to serve as an interface for saving reports.
+
+    """
+
+    @abstractmethod
+    def save():
+        pass
+
+class IStorm(ABC):
+    """
+    Abstract class to serve as an interface for track data sources.
+
+    Methods:
+    --------
+    extract_data()
+        Extracts the data from the given source and returns a list of Track objects.
+
+    """
+
+    @abstractmethod
+    def extract_data() -> List[Track]:
+        pass
+
+class AreaService:
+    """
+    Service for a distinct geographical area.
 
     Attributes:
     -----------
-    track: Track
-        A Track instance.
+        name:       str
+            Name of the area
+        shape:      shaprely.Geometry
+            Geometry instance object.
+
+    Methods:
+    --------
+    contains_point(LatLongPoint):
+        Returns whether a LatLongPoint is within or on the boundary of the polygon.
+
+    """
+
+    def __init__(self, repository: IArea, file_source=None) -> None:
+        self.repository = repository()
+        self.geometry = self.repository.extract_geometry(file_source=file_source)
+
+class StormDataService:
+    """
+    Creates one or more storm Track instances and provides analysis on them.
+
+    Attributes:
+    -----------
+    tracks: List[Track]
+        A list of Track instances.
 
     Methods:
     --------
@@ -41,30 +89,48 @@ class StormReportService:
     get_max_windspeed()
     """
 
-    def __init__(self, track: Track):
-        self.track = track
-        landfall_entries = []
+    def __init__(self, repo: IStorm, source_path: str, area: IArea):
+        self.repo = repo(source_path)
+        self.area = area
+        self.tracks = self.repo.extract_data()
 
-    def get_landfall_dates(self, area: GeoArea) -> List[TrackEntry]:
+    def record_landfall_events(self):
+        records = []
+
+        for track in self.tracks:
+            landfalls = StormDataService.get_landfall_dates(track, self.area.geometry)
+            if not landfalls:
+                continue
+            record = {
+                'name': track.name,
+                'lf_events': [(str(landfall.datetime), landfall.max_windspeed) for landfall in landfalls]
+            }
+            records.append(record)
+        
+        return records
+
+    @staticmethod
+    def get_landfall_dates(track: Track, area: Geometry) -> List[TrackEntry]:
         """
         
-        Returns all dates and times when the storm makes landfall over an area.
+        Returns all dates and times when the storm makes landfall over an area, 
+        with the max windspeed at that time.
 
         Parameters:
         -----------
-        area: GeoArea
+        area: Area
             The land where we want to identify landfall events.
 
         Returns:
         --------
-            List of strings, formatted in ISO 8601 format ({YYYY}{MM}{DD}T{HH}{MM}).
+            List of TrackEntry instances.
         
         """
         in_area = False
         entries = []
-        for track_entry in self.track.track_entries:
+        for track_entry in track.track_entries:
             # Check if this point is in the area specified.
-            if not area.contains(track_entry.location):
+            if not area.contains(track_entry.location.to_point()):
                 in_area = False
                 continue
             # If the in_area flag is True, then this is not a new landfall event.
@@ -77,3 +143,35 @@ class StormReportService:
                 entries.append(track_entry)
 
         return entries
+
+
+class ReportService():
+    """
+    Creates one or more Report instances and calls implementation of the IReport
+     interface to save.
+
+    Attributes:
+    -----------
+    records: List[Dict]
+        List of dicts which will be reported.
+    report_date: str
+        The date the report was made, in the format {YYYY}{MM}{DD}
+
+    Methods:
+    --------
+    create_report(fields:)
+    """
+
+    def __init__(self, repo) -> None:
+        self.report = {}
+        self.report_date = datetime.today()
+        self.repository = repo()
+
+    def generate(self, storms):
+        self.report = {
+            'Report Date': str(self.report_date),
+            'Storms making landfall:': storms,
+        }
+
+    def save(self, target: str):
+        self.repository.save(target, self.report)
