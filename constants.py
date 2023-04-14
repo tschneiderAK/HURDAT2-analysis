@@ -15,5 +15,7 @@ DATA_MAX_WIND_COL = 6
 
 
 # File directories
-FLORIDA_GEOJSON = './florida.json'
-HURDAT_DATA = './hurdat2-1851-2021-100522.txt'
+FLORIDA_GEOJSON = './data/florida.json'
+HURDAT_DATA = './data/hurdat2-1851-2021-100522.txt'
+REPORT = './reports/'
+WILMA = './tests/data/wilma.txt'

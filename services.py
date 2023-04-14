@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from matplotlib.path import Path as mpltPath
 from shapely import Geometry
 
 import constants
@@ -103,7 +102,7 @@ class StormDataService:
                 continue
             record = {
                 'name': track.name,
-                'lf_events': [(str(landfall.datetime), landfall.max_windspeed) for landfall in landfalls]
+                'landfall_events': [ {'datetime': landfall.datetime.isoformat(), 'max_windspeed_kts': landfall.max_windspeed} for landfall in landfalls]
             }
             records.append(record)
         
@@ -133,7 +132,7 @@ class StormDataService:
             if not area.contains(track_entry.location.to_point()):
                 in_area = False
                 continue
-            # If the in_area flag is True, then this is not a new landfall event.
+            # If the in_area flag is True, then this is not a new landfall event: the storm has not yet moved out of the target area.
             if in_area:
                 continue
 

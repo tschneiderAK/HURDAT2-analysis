@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 # Data Files
-./reports
-./data
-./tests/data
+reports/
+data/
+tests/data/

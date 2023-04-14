@@ -63,7 +63,7 @@ class StormTextRepository(IStorm):
     def extract_data(self) -> List[Track]:
         """
 
-        Extracts data and returns a DataSet object.
+        Extracts data and returns a list of Track objects.
 
         """
 
@@ -143,8 +143,8 @@ class StormTextRepository(IStorm):
         track_datetime = datetime.fromisoformat(data_line[DATA_DATE_COL] + 'T' + data_line[DATA_TIME_COL] + 'Z')
 
         # Parse lat/lon and convert S/W coords to negative values (S and W are multiplied by -1).
-        latitude = float(data_line[DATA_LAT_COL][:-1]) * (-1 ** (data_line[DATA_LAT_COL][-1] == 'S'))
-        longitude = float(data_line[DATA_LON_COL][:-1]) * (-1 ** (data_line[DATA_LON_COL][-1] == 'W'))
+        latitude = float(data_line[DATA_LAT_COL][:-1]) * (-1 if data_line[DATA_LAT_COL][-1] == 'S' else 1)
+        longitude = float(data_line[DATA_LON_COL][:-1]) * (-1 if data_line[DATA_LON_COL][-1] == 'W' else 1)
         location = LatLongPoint(latitude, longitude)
 
         # Create a TrackEntry object for this line of data and return
