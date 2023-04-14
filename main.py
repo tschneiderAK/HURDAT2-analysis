@@ -1,5 +1,5 @@
 import logging
-
+from datetime import datetime
 import services
 import repositories
 import entities
@@ -9,6 +9,7 @@ import constants
 def main():
     logging.basicConfig(filename='app.log', filemode='w', level=logging.INFO)
 
+    logging.info('Analysis Started at' + str(datetime.now()))
     # Initialize the area service.
     area_service = services.AreaService(repositories.AreaJSONRepository,
                                         constants.FLORIDA_GEOJSON)
@@ -27,7 +28,7 @@ def main():
 
     # Generate and save the report.
     report_service.generate(events)
-    report_service.save('./')
+    report_service.save(constants.REPORT)
     
         
 if __name__ == "__main__":
