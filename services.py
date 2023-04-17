@@ -56,6 +56,62 @@ class AreaService:
         self.repository = repository()
         self.geometry = self.repository.extract_geometry(file_source=file_source)
 
+
+class ReportService():
+    """
+    Creates one or more Report instances and calls implementation of the IReport
+     interface to save.
+
+    Attributes:
+    -----------
+    records: List[Dict]
+        List of dicts which will be reported.
+    report_date: str
+        The date the report was made, in the format {YYYY}{MM}{DD}
+
+    Public Methods:
+    --------
+    generate(fields):
+
+
+    """
+
+    def __init__(self, repo: IReport) -> None:
+        self.report = {}
+        self.report_date = datetime.today()
+        self.repository = repo()
+
+    def generate(self, storms) -> None:
+        """
+        Adds a report date to the storms parameter and saves them to the instance for saving.
+
+        Paramters:
+        ----------
+        storms: List[dict]
+            A list of dicts containing information about storms to be added to the report.
+
+        """
+        self.report = {
+            'Report Date': str(self.report_date),
+            'Storms making landfall:': storms,
+        }
+
+    def save(self, target: str) -> int:
+        """"
+        
+        Saves the report attribute using the provided IReport repository.
+        Returns a success (200) or error (400) code.
+
+        Parameters:
+        -----------
+        target: str
+            String of the relative target directory path.
+
+        """
+        return_code = self.repository.save(target, self.report)
+        return return_code
+
+
 class StormDataService:
     """
     Creates one or more storm Track instances and provides analysis on them.
@@ -141,60 +197,3 @@ class StormDataService:
             records.append(record)
         
         return records
-
-    
-
-
-class ReportService():
-    """
-    Creates one or more Report instances and calls implementation of the IReport
-     interface to save.
-
-    Attributes:
-    -----------
-    records: List[Dict]
-        List of dicts which will be reported.
-    report_date: str
-        The date the report was made, in the format {YYYY}{MM}{DD}
-
-    Public Methods:
-    --------
-    generate(fields):
-
-
-    """
-
-    def __init__(self, repo: IReport) -> None:
-        self.report = {}
-        self.report_date = datetime.today()
-        self.repository = repo()
-
-    def generate(self, storms) -> None:
-        """
-        Adds a report date to the storms parameter and saves them to the instance for saving.
-
-        Paramters:
-        ----------
-        storms: List[dict]
-            A list of dicts containing information about storms to be added to the report.
-
-        """
-        self.report = {
-            'Report Date': str(self.report_date),
-            'Storms making landfall:': storms,
-        }
-
-    def save(self, target: str) -> int:
-        """"
-        
-        Saves the report attribute using the provided IReport repository.
-        Returns a success (200) or error (400) code.
-
-        Parameters:
-        -----------
-        target: str
-            String of the relative target directory path.
-
-        """
-        return_code = self.repository.save(target, self.report)
-        return return_code
