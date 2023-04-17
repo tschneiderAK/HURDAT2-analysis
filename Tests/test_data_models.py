@@ -12,7 +12,7 @@ import entities as ent
 class TestStormTextRepository(unittest.TestCase):
     
     data = None
-    source = os.path.join(os.path.dirname(__file__), './data/hurdat_sample.txt')
+    source = os.path.join(os.path.dirname(__file__), './data/entities_test_storms.txt')
     name = "myTestSource"
 
     @classmethod

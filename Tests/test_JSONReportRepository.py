@@ -1,5 +1,6 @@
-import unittest
-import pathlib
+import sys, unittest
+
+sys.path.append('../hurdat2')
 
 import repositories
 
@@ -29,3 +30,7 @@ class TestJSONReportRepository(unittest.TestCase):
         
         # Assert
         self.assertEqual(invalid_return, 400)
+
+
+if __name__ == '__main__':
+    unittest.main()
