@@ -1,3 +1,5 @@
+# TODO: Replace this with a .env file.
+
 # Header row column numbers for parsing
 HEADER_REGEX = r"^([A-Z]{2})(\d{2})(\d{4})"
 HEADER_ID_COL = 0
@@ -18,4 +20,3 @@ DATA_MAX_WIND_COL = 6
 FLORIDA_GEOJSON = './data/florida.json'
 HURDAT_DATA = './data/hurdat2-1851-2021-100522.txt'
 REPORT = './reports/'
-WILMA = './tests/data/wilma.txt'
