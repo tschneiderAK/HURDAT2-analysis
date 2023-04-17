@@ -34,4 +34,4 @@ user@host: $ python main.py
 
 ## Output
 
-Output report will be exported to the /reports/ directory. Currently, only .JSON formatted exports are supported.
+Output report will be exported to the /reports/ directory as specified in constants.py. Currently, only .JSON formatted exports are supported.
