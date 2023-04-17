@@ -7,9 +7,11 @@ import constants
 
 
 def main():
-    logging.basicConfig(filename='app.log', filemode='w', level=logging.INFO)
 
+    # Set up logging.
+    logging.basicConfig(filename='app.log', filemode='w', level=logging.INFO)
     logging.info('Analysis Started at' + str(datetime.now()))
+    
     # Initialize the area service.
     area_service = services.AreaService(repositories.AreaJSONRepository,
                                         constants.FLORIDA_GEOJSON)
@@ -28,8 +30,11 @@ def main():
 
     # Generate and save the report.
     report_service.generate(events)
-    report_service.save(constants.REPORT)
+    report_save_status = report_service.save(constants.REPORT)
     
+    # Check save return code and log errors.
+    if report_save_status != 200:
+        logging.warning('Error: Report not saved. Check file directory configurations and try again.')
         
 if __name__ == "__main__":
     main()
