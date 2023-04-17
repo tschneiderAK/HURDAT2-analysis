@@ -1,6 +1,4 @@
-import json
-import logging
-from abc import ABC, abstractmethod
+import json, logging
 from dataclasses import dataclass
 from re import findall, match
 from pathlib import Path
@@ -14,8 +12,33 @@ from services import IArea, IReport, IStorm
 
 
 class AreaJSONRepository(IArea):
+    """
+    
+    Repository for creating a Geometry object from a geoJSON file.
+
+    Public Methods:
+    ---------------
+    extract_geometry(self, file_source)
+
+
+    """
 
     def extract_geometry(self, file_source):
+        """
+        
+        Returns a shapely Geomtry object representing the area defined by the geoJSON in file_source.
+
+        Paramters:
+        ----------
+        source_file: str
+            String relative path to the geoJSON file to be ingested.
+
+        Returns:
+        --------
+        area:   Geometry
+            Geometry object created from the geoJSON.
+
+        """
         with open(file_source, 'r') as f:
             data = json.load(f)
         area = shape(data['geometry'])
@@ -47,10 +70,10 @@ class StormTextRepository(IStorm):
     """
 
     # Attributes
-    source_path:    str    
-    header_regex:   Optional[str] = HEADER_REGEX
+    source_path:    str
     source_name:    Optional[str] = None
-    
+    header_regex:   Optional[str] = HEADER_REGEX
+
     # Methods
     def __post_init__(self):
         """
@@ -209,10 +232,32 @@ class JSONReportRepository(IReport):
     """
     
     Implementation of the IReport interface, using json as the file format.
+
+    Public Methods:
+    ---------------
+    save(self, target, data)
+        Saves the data to a JSON file in the target directory.
     
     """
     
-    def save(self, target: str, data) -> bool:
+    def save(self, target: str, data: List[dict]) -> bool:
+        """
+        
+        Saves the data to a JSON file in the target directory.
+
+        Parameters:
+        -----------
+        target: str
+            String relative directory path for the report to be saved in.
+        data:   List[dict]
+            Data to be saved in the report.
+
+        Returns:
+        --------
+        200 (success) or 400 (failure)
+
+
+        """
         directory = Path(target)
         # Check if the target is a valid directory.
         if not directory.exists() or not directory.is_dir():
@@ -222,6 +267,7 @@ class JSONReportRepository(IReport):
         # TODO: Add logic to avoid overwriting existing files.
         report_path = Path(target + "/HURDAT2_REPORT.json")
         
+        # Write the data to file.
         with report_path.open(mode='w') as file:
             json.dump(data, file)
 
