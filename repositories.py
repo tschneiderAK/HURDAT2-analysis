@@ -6,7 +6,7 @@ from re import findall, match
 from pathlib import Path
 from typing import List, Optional
 
-from shapely.geometry import MultiPolygon, Point, shape
+from shapely.geometry import shape
 
 from constants import *
 from entities import *
@@ -38,10 +38,11 @@ class StormTextRepository(IStorm):
         Regex pattern which indicates a header line in the source file.
         Defaults to '^AL\d{6}'
 
-    Methods:
+    Public Methods:
     --------
     extract_data()
-        Extracts the data from the given text file and returns a list of Track objects..
+        Extracts the data from the given text file and returns a list of Track objects.
+    
     
     """
 
@@ -65,6 +66,15 @@ class StormTextRepository(IStorm):
 
         Extracts data and returns a list of Track objects.
 
+        Parameters:
+        -----------
+        None
+
+        Returns:
+        --------
+        tracks: List[Track]
+            List of Tracks from this data source.
+
         """
 
         with open(self.source_path, 'r') as source_data:
@@ -85,6 +95,7 @@ class StormTextRepository(IStorm):
             List of lines from the text file.
         
         Returns:
+        --------
             List of Track objects found in the lines.
 
         """
@@ -105,12 +116,37 @@ class StormTextRepository(IStorm):
     def _is_header(self, line) -> bool:
         """
         Returns if the line is a header, based on the regex.
+        
+        Parameters:
+        -----------
+        line: str
+            A string representing a header line from the input file.
+        
+        Returns:
+        --------
+        Boolean of whether the line meets the header line format.
+
         """
         
         if match(self.header_regex, line):
             return True
         
     def _parse_header(self, line) -> Track:
+        """
+        
+        Returns a Track object created from the data in a header line.
+
+        Parameters:
+        -----------
+        line: str
+            A string representing a header line from the input file.
+        
+        Returns:
+        --------
+        track: Track
+            A Track object instantiated with the header line's data.
+
+        """
         # Split the header and strip whitespace
         header = [part.strip() for part in line.split(',')]
 
@@ -133,6 +169,16 @@ class StormTextRepository(IStorm):
     def _parse_track_entry(self, line) -> TrackEntry:
         """
         Parses a data entry line and returns a TrackEntry object with the data.
+
+        Parameters:
+        -----------
+        line: str
+            A string representing a single line from the data file.
+
+        Returns:
+        --------
+        track_entry: TrackEntry
+            A TrackEntry object which contains the data from line.
         """
 
         # Split line on commas and remove leading and trailing whitespace
